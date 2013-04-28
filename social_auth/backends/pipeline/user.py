@@ -2,7 +2,8 @@ from uuid import uuid4
 
 from social_auth.utils import setting, module_member
 from social_auth.models import UserSocialAuth
-
+from social_auth.signals import socialauth_registered, \
+                                pre_update
 
 slugify = module_member(setting('SOCIAL_AUTH_SLUGIFY_FUNCTION',
                                 'django.template.defaultfilters.slugify'))
@@ -123,6 +124,25 @@ def update_user_details(backend, details, response, user=None, is_new=False,
             if value and value != getattr(user, name, None):
                 setattr(user, name, value)
                 changed = True
+    # Fire a pre-update signal sending current backend instance,
+    # user instance (created or retrieved from database), service
+    # response and processed details.
+    #
+    # Also fire socialauth_registered signal for newly registered
+    # users.
+    #
+    # Signal handlers must return True or False to signal instance
+    # changes. Send method returns a list of tuples with receiver
+    # and it's response.
+    signal_response = lambda (receiver, response): response
+    signal_kwargs = {'sender': backend.__class__, 'user': user,
+                     'response': response, 'details': details}
 
+    changed |= any(filter(signal_response, pre_update.send(**signal_kwargs)))
+
+    # Fire socialauth_registered signal on new user registration
+    if is_new:
+        changed |= any(filter(signal_response,
+                              socialauth_registered.send(**signal_kwargs)))
     if changed:
         user.save()
