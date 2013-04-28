@@ -100,6 +100,14 @@ def auth_process(request, backend):
 
 
 def complete_process(request, backend, *args, **kwargs):
+    from django.contrib.auth.models import Group
+    from social_auth.models import UserSocialAuth
+    from social_friends_finder.models import SocialFriendList
+    from django.core.cache import cache
+    from itertools import chain
+    from actstream import actions
+    from actstream.models import Follow
+
     """Authentication complete process"""
     # pop redirect value before the session is trashed on login()
     redirect_value = request.session.get(REDIRECT_FIELD_NAME, '') or \
@@ -115,12 +123,39 @@ def complete_process(request, backend, *args, **kwargs):
     msg = None
     if user:
         if getattr(user, 'is_active', True):
+            """Make the user staff and add into StaffUsers group"""
+            user.is_staff = True
+            group = Group.objects.get(name='StaffUsers') 
+            group.user_set.add(user)
             # catch is_new flag before login() might reset the instance
             is_new = getattr(user, 'is_new', False)
             login(request, user)
             # user.social_user is the used UserSocialAuth instance defined
             # in authenticate process
             social_user = user.social_user
+            friends = SocialFriendList.objects.existing_social_friends(social_user)
+            cache.delete(social_user.user.username+"SocialFriendList")
+            cache.set(social_user.user.username+"SocialFriendList", friends)
+            for friend_user in friends:
+                if not Follow.objects.is_following(user, friend_user):
+                    social_user.user.relationships.add(friend_user, symmetrical=True)
+                    actions.follow(social_user.user, friend_user, actor_only=False )
+                    actions.follow(friend_user, social_user.user, actor_only=False)
+
+            friends_of_friends = list(friends)
+            for friend in friends:
+                socialAuthFriend = friend.social_auth.filter(provider="facebook")
+                if not socialAuthFriend:
+                    socialAuthFriend = friend.social_auth.filter(provider="twitter")
+
+                if socialAuthFriend:
+                    friends_level2 = SocialFriendList.objects.existing_social_friends(socialAuthFriend[0])
+                    if friends_level2:
+                        friends_of_friends = list(chain(friends_of_friends, friends_level2))
+            if friends_of_friends:
+                cache.delete(social_user.user.username+"SocialFriendListLevel2")
+                cache.set(social_user.user.username+"SocialFriendListLevel2", friends_of_friends)
+
             if redirect_value:
                 request.session[REDIRECT_FIELD_NAME] = redirect_value or \
                                                        DEFAULT_REDIRECT
