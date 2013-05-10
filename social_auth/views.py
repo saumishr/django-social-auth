@@ -138,9 +138,13 @@ def complete_process(request, backend, *args, **kwargs):
             cache.set(social_user.user.username+"SocialFriendList", friends)
             for friend_user in friends:
                 if not Follow.objects.is_following(user, friend_user):
-                    social_user.user.relationships.add(friend_user, symmetrical=True)
-                    actions.follow(social_user.user, friend_user, actor_only=False )
-                    actions.follow(friend_user, social_user.user, actor_only=False)
+                    if social_user.provider == "facebook":
+                        social_user.user.relationships.add(friend_user, symmetrical=True)
+                        actions.follow(social_user.user, friend_user, actor_only=False )
+                        actions.follow(friend_user, social_user.user, actor_only=False)
+                    elif social_user.provider == "twitter":
+                        social_user.user.relationships.add(friend_user, symmetrical=False)
+                        actions.follow(social_user.user, friend_user, actor_only=False )                      
 
             friends_of_friends = list(friends)
             for friend in friends:
