@@ -150,19 +150,19 @@ def complete_process(request, backend, *args, **kwargs):
                             social_user.user.relationships.add(friend_user, symmetrical=False)
                             actions.follow(social_user.user, friend_user, actor_only=False )                      
 
-            friends_of_friends = list(friends)
-            for friend in friends:
-                socialAuthFriend = friend.social_auth.filter(provider="facebook")
-                if not socialAuthFriend:
-                    socialAuthFriend = friend.social_auth.filter(provider="twitter")
+            # friends_of_friends = list(friends)
+            # for friend in friends:
+            #     socialAuthFriend = friend.social_auth.filter(provider="facebook")
+            #     if not socialAuthFriend:
+            #         socialAuthFriend = friend.social_auth.filter(provider="twitter")
 
-                if socialAuthFriend:
-                    friends_level2 = SocialFriendList.objects.existing_social_friends(socialAuthFriend[0])
-                    if friends_level2:
-                        friends_of_friends = list(chain(friends_of_friends, friends_level2))
-            if friends_of_friends:
-                cache.delete(social_user.user.username+"SocialFriendListLevel2")
-                cache.set(social_user.user.username+"SocialFriendListLevel2", friends_of_friends)
+            #     if socialAuthFriend:
+            #         friends_level2 = SocialFriendList.objects.existing_social_friends(socialAuthFriend[0])
+            #         if friends_level2:
+            #             friends_of_friends = list(chain(friends_of_friends, friends_level2))
+            # if friends_of_friends:
+            #     cache.delete(social_user.user.username+"SocialFriendListLevel2")
+            #     cache.set(social_user.user.username+"SocialFriendListLevel2", friends_of_friends)
 
             if redirect_value:
                 request.session[REDIRECT_FIELD_NAME] = redirect_value or \
