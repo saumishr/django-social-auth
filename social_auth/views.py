@@ -132,24 +132,25 @@ def complete_process(request, backend, *args, **kwargs):
             login(request, user)
             # user.social_user is the used UserSocialAuth instance defined
             # in authenticate process
-            social_user = user.social_user
-            if social_user.provider != "google" and social_user.provider != "google-oauth" and social_user.provider != "google-oauth2":
-                friends = SocialFriendList.objects.existing_social_friends(social_user)
-                cache.delete(social_user.user.username+"SocialFriendList")
-                cache.set(social_user.user.username+"SocialFriendList", friends)
-                """
-                Default auto follow only for the new user.
-                """
-                if is_new:
-                    for friend_user in friends:
+            social_user = user.social_user       
+            friends = SocialFriendList.objects.existing_social_friends(social_user)
+
+            cache.delete(social_user.user.username+"SocialFriendList")
+            cache.set(social_user.user.username+"SocialFriendList", friends)
+            """
+            Default auto follow only for the new user.
+            """
+            if is_new:  # Disable it in case you want auto follow for each login.
+                for friend_user in friends:
+                    if user.email != friend_user.email:
                         if not Follow.objects.is_following(user, friend_user):
-                            if social_user.provider == "facebook":
-                                social_user.user.relationships.add(friend_user, symmetrical=True)
-                                actions.follow(social_user.user, friend_user, actor_only=False )
-                                actions.follow(friend_user, social_user.user, actor_only=False)
+                            if social_user.provider == "facebook" or social_user.provider == "google-oauth2" or social_user.provider == "google-oauth" or social_user.provider == "google":
+                                user.relationships.add(friend_user, symmetrical=True)
+                                actions.follow(user, friend_user, actor_only=False )
+                                actions.follow(friend_user, user, actor_only=False)
                             elif social_user.provider == "twitter":
-                                social_user.user.relationships.add(friend_user, symmetrical=False)
-                                actions.follow(social_user.user, friend_user, actor_only=False )                      
+                                user.relationships.add(friend_user, symmetrical=False)
+                                actions.follow(user, friend_user, actor_only=False )                      
 
             # friends_of_friends = list(friends)
             # for friend in friends:

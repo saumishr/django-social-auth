@@ -31,6 +31,7 @@ GOOGLE_OAUTH_SERVER = 'www.google.com'
 AUTHORIZATION_URL = 'https://www.google.com/accounts/OAuthAuthorizeToken'
 REQUEST_TOKEN_URL = 'https://www.google.com/accounts/OAuthGetRequestToken'
 ACCESS_TOKEN_URL = 'https://www.google.com/accounts/OAuthGetAccessToken'
+CONTACTS_URL = "https://www.google.com/m8/feeds/contacts/default/full"
 
 # Google OAuth2 base configuration
 GOOGLE_OAUTH2_SERVER = 'accounts.google.com'
