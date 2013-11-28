@@ -46,6 +46,7 @@ GOOGLEAPIS_EMAIL = 'https://www.googleapis.com/userinfo/email'
 GOOGLEAPIS_PROFILE = 'https://www.googleapis.com/oauth2/v1/userinfo'
 GOOGLE_OPENID_URL = 'https://www.google.com/accounts/o8/id'
 
+MAX_RESULTS_FOR_GOOGLE_CONTACT = 1000
 
 # Backends
 class GoogleOAuthBackend(OAuthBackend):
