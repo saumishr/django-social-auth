@@ -100,7 +100,6 @@ def auth_process(request, backend):
 
 
 def complete_process(request, backend, *args, **kwargs):
-    from django.contrib.auth.models import Group
     from social_auth.models import UserSocialAuth
     from social_friends_finder.models import SocialFriendList
     from django.core.cache import cache
@@ -123,10 +122,6 @@ def complete_process(request, backend, *args, **kwargs):
     msg = None
     if user:
         if getattr(user, 'is_active', True):
-            """Make the user staff and add into StaffUsers group"""
-            user.is_staff = True
-            group = Group.objects.get(name='StaffUsers') 
-            group.user_set.add(user)
             # catch is_new flag before login() might reset the instance
             is_new = getattr(user, 'is_new', False)
             login(request, user)
