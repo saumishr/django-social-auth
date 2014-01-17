@@ -121,6 +121,12 @@ def complete_process(request, backend, *args, **kwargs):
 
     msg = None
     if user:
+        """
+            If user account is not already active or under verification, make it active.
+        """
+        if not getattr(user, 'is_active', True):
+            user.is_active = True
+
         if getattr(user, 'is_active', True):
             # catch is_new flag before login() might reset the instance
             is_new = getattr(user, 'is_new', False)
