@@ -16,7 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 from social_auth.utils import sanitize_redirect, setting, \
                               backend_setting, clean_partial_pipeline
 from social_auth.decorators import dsa_view, disconnect_view
-
+from mezzanine.utils.email import send_welcome_mail
 
 DEFAULT_REDIRECT = setting('SOCIAL_AUTH_LOGIN_REDIRECT_URL',
                            setting('LOGIN_REDIRECT_URL'))
@@ -151,7 +151,9 @@ def complete_process(request, backend, *args, **kwargs):
                                 actions.follow(friend_user, user, actor_only=False)
                             elif social_user.provider == "twitter":
                                 user.relationships.add(friend_user, symmetrical=False)
-                                actions.follow(user, friend_user, actor_only=False )                      
+                                actions.follow(user, friend_user, actor_only=False ) 
+
+                send_welcome_mail(request, user, "signup_welcome")
 
             # friends_of_friends = list(friends)
             # for friend in friends:
