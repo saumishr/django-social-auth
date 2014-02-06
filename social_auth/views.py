@@ -153,7 +153,8 @@ def complete_process(request, backend, *args, **kwargs):
                                 user.relationships.add(friend_user, symmetrical=False)
                                 actions.follow(user, friend_user, actor_only=False ) 
 
-                send_welcome_mail(request, user, "signup_welcome")
+                if social_user.provider != "twitter":
+                    send_welcome_mail(request, user, "signup_welcome")
 
             # friends_of_friends = list(friends)
             # for friend in friends:
